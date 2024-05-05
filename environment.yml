@@ -1,0 +1,12 @@
+name: chess
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python
+  - numpy
+  - jupyterlab
+  - ipywidgets
+  - matplotlib
+  - chess
+  
