@@ -9,4 +9,7 @@ dependencies:
   - ipywidgets
   - matplotlib
   - chess
+  - pip
+  - pip:
+    - cachetools
   
