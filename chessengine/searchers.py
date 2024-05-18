@@ -57,22 +57,26 @@ class ChessCache:
 
     @staticmethod
     def get_cache_key(board: chess.Board) -> str:
-        """Construncts a cache key from a board state.
+        """Constructs a cache key from a board state.
 
-        Currently that includes the piece placement, active color, castling availability, and en
-        passant square, i.e., the first four entries of the FEN. The halfmove clock is omitted,
-        because it probably doesn't become relevant enough often enough to matter in caching."""
+        Currently, that includes the piece placement, active color, castling availability, and en passant square, i.e.,
+        the first four entries of the FEN. The half move clock is omitted, because it probably doesn't become relevant
+        enough often enough to matter in caching."""
 
         return " ".join(board.fen().split(" ")[:4])
 
 
+# pylint: disable=too-few-public-methods
 class Searcher(ABC):
+    """Search algorithm that provides an evaluation of a chess position based on searching in the tree of
+    possible moves"""
     @abstractmethod
     def search(self, board: chess.Board) -> float:
-        pass
+        """Performs the tree search and returns an evaluation in centi pawns"""
 
 
 class MinimaxSearcher(Searcher):
+    """Searcher based on the Minimax algorithm"""
 
     def __init__(self, evaluator: Evaluator, depth: int):
         assert depth > 0
@@ -126,6 +130,27 @@ class AlphaBetaSearcher(Searcher):
 def minimax(
     board: chess.Board, evaluator: Evaluator, depth: int, maximize: bool
 ) -> float:
+    """Minimax algorithm for search-based evaluation of a chess position
+
+    Parameters
+    ----------
+    board
+        State of the chess board to be evaluated
+    evaluator
+        Evaluation function used at leaf nodes
+    depth
+        The depth to which the tree of possible moves is searched. A value of zero causes this function to just apply
+        the `evaluator` to the current position and return the result.
+    maximize
+        Signals whether the function should choose branches that maximize or minimize the evaluation score. By
+        convention positive values are advantageous for white and negative values are advantageous for black. If white
+        is to move, set this to `True`. (TODO read that from the `board`)
+
+    Returns
+    -------
+    float
+        Evaluation score of the current position in centi pawns.
+    """
 
     if depth <= 0:
         return evaluator.eval(board)
@@ -159,6 +184,7 @@ def minimax(
     return best_value
 
 
+# pylint: disable=too-many-arguments,too-many-branches
 def cached_alpha_beta_search(
     board: chess.Board,
     evaluator: Evaluator,
@@ -166,7 +192,8 @@ def cached_alpha_beta_search(
     depth: int,
     alpha: float,
     beta: float,
-) -> tuple[chess.Move, float]:
+) -> float:
+    """Cached variant of the :func:'~alpha_beta_search' algorithm"""
 
     if depth <= 0:
         value = None
@@ -225,13 +252,35 @@ def cached_alpha_beta_search(
     return best_value
 
 
+# pylint: disable=too-many-arguments
 def alpha_beta_search(
     board: chess.Board,
     evaluator: Evaluator,
     depth: int,
     alpha: float,
     beta: float,
-) -> tuple[chess.Move, float]:
+) -> float:
+    """Alpha-Beta algorithm for search-based evaluation of a chess position
+
+    Parameters
+    ----------
+    board
+        State of the chess board to be evaluated
+    evaluator
+        Evaluation function used at leaf nodes
+    depth
+        The depth to which the tree of possible moves is searched. A value of zero causes this function to just apply
+        the `evaluator` to the current position and return the result.
+    alpha
+        Parameter for tree pruning. Use large negative value to initialize the algorithm.
+    beta
+        Parameter for tree pruning. Use large positive value to initialize the algorithm.
+
+    Returns
+    -------
+    float
+        Evaluation score of the current position in centi pawns.
+    """
 
     if depth <= 0:
         return evaluator.eval(board)

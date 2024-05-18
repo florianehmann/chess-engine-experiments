@@ -6,6 +6,7 @@ from .searchers import Searcher
 
 
 def get_next_move(board: chess.Board, searcher: Searcher) -> tuple[chess.Move, float]:
+    """Find the best next move for the current position of `board` using the provided `searcher`."""
     best_move = None
     best_value = -99_999
 

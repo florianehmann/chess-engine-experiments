@@ -4,12 +4,17 @@ from abc import ABC, abstractmethod
 
 import chess
 
+
+# pylint: disable=too-few-public-methods
 class Evaluator(ABC):
+    """Function to evaluate a given chess position"""
     @abstractmethod
     def eval(self, board: chess.Board) -> float:
-        pass
+        """Takes the current position of `board` and returns an evaluation score in centi pawns"""
+
 
 class SimpleEvaluator(Evaluator):
+    """Simple hand-crafted evaluation function based on static piece-values and positional bonuses and penalties"""
 
     PIECE_SQUARE_TABLE = [
         [ -50 , -40 , -30 , -30 , -30 , -30 , -40 , -50],
@@ -45,6 +50,3 @@ class SimpleEvaluator(Evaluator):
             )
 
         return scores[chess.WHITE] - scores[chess.BLACK]
-
-if __name__ == "__main__":
-    evaluator = SimpleEvaluator()

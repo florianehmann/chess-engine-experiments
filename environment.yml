@@ -4,6 +4,7 @@ channels:
   - defaults
 dependencies:
   - python
+  - pylint
   - numpy
   - jupyterlab
   - ipywidgets
