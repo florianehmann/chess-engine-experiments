@@ -11,13 +11,13 @@ from .evaluators import Evaluator
 
 @dataclass
 class CacheEntry:
-    """Entries of the cess cache."""
+    """Entries of the chess cache."""
     depth: int
     value: float
 
 
 class ChessCache:
-    """Cache for search-enhanced evaluations of positions."""
+    """Cache for search-enhanced evaluations of positions"""
 
     def __init__(self, maxsize):
         self.cache = LRUCache(maxsize=maxsize)
@@ -25,7 +25,7 @@ class ChessCache:
         self.misses = 0
 
     def contains(self, board: chess.Board, depth: int) -> bool:
-        """Checks if board is present in cache with at least the specified depth."""
+        """Checks if board is present in cache with at least the specified depth"""
         key = self.get_cache_key(board)
 
         if key not in self.cache:
@@ -193,7 +193,7 @@ def cached_alpha_beta_search(
     alpha: float,
     beta: float,
 ) -> float:
-    """Cached variant of the :func:'~alpha_beta_search' algorithm"""
+    """Cached variant of the :func:`alpha_beta_search` algorithm"""
 
     if depth <= 0:
         value = None

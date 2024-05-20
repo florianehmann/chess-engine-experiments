@@ -5,6 +5,7 @@ channels:
 dependencies:
   - python
   - pylint
+  - sphinx
   - numpy
   - jupyterlab
   - ipywidgets
@@ -13,4 +14,4 @@ dependencies:
   - pip
   - pip:
     - cachetools
-  
+    - sphinx_rtd_theme
