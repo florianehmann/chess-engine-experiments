@@ -45,8 +45,11 @@ class SearchResult:
     @classmethod
     def from_mate(cls, move_sequence: list[chess.Move]):
         """Create a search result that represents forced mate in a certain number of moves."""
+
         instance = cls.__new__(cls)
+        instance.type = SearchResultType.MATE
         instance.move_sequence = move_sequence
+
         return instance
 
 
