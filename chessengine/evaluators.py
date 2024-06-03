@@ -14,6 +14,31 @@ class Evaluator(ABC):
 
 
 class SimpleEvaluator(Evaluator):
+    """Works by just counting the piece values"""
+
+    PIECE_VALUES = {
+        chess.PAWN:   100,
+        chess.KNIGHT: 300,
+        chess.BISHOP: 300,
+        chess.ROOK:   500,
+        chess.QUEEN:  900,
+    }
+
+    def eval(self, board: chess.Board) -> float:
+        scores = {chess.WHITE: 0, chess.BLACK: 0}
+
+        for square in chess.SQUARES:
+            piece = board.piece_at(square)
+
+            if piece is None or piece.piece_type == chess.KING:
+                continue
+
+            scores[piece.color] += self.PIECE_VALUES[piece.piece_type]
+
+        return scores[chess.WHITE] - scores[chess.BLACK]
+
+
+class SimpleHandCraftedEvaluator(Evaluator):
     """Simple hand-crafted evaluation function based on static piece-values and positional bonuses and penalties"""
 
     PIECE_SQUARE_TABLE = [
@@ -35,7 +60,7 @@ class SimpleEvaluator(Evaluator):
         chess.QUEEN:  900,
     }
 
-    def eval(self, board: chess.Board):
+    def eval(self, board: chess.Board) -> float:
         scores = {chess.WHITE: 0, chess.BLACK: 0}
 
         for square in chess.SQUARES:
