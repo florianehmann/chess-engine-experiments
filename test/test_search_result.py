@@ -1,4 +1,4 @@
-"""Tests of the """
+"""Tests of the search result data type"""
 
 import chess
 import pytest

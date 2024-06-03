@@ -4,6 +4,7 @@ chessengine
 .. toctree::
    :hidden:
 
+   chessengine.cache
    chessengine.evaluators
    chessengine.searchers
 
