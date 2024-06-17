@@ -87,7 +87,7 @@ class AlphaBetaSearcher(Searcher):
         beta: float = +1_000_000,
         cachesize: int = 0,
     ):
-        assert depth > 0
+        assert depth >= 0
         assert cachesize >= 0
 
         self.evaluator = evaluator
