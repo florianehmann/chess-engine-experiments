@@ -13,77 +13,57 @@ class AlphaBetaSearcher(Searcher):
 
         self.evaluator = evaluator
         self.depth = depth
+
+        self.board = None
+        self.alpha = 0.0
+        self.beta = 0.0
+
+    def search(self, board: chess.Board) -> float:
+        self.board = board
         self.alpha = float("-inf")
         self.beta = float("inf")
 
-    def search(self, board: chess.Board) -> float:
-        return alpha_beta_search(board, self.evaluator, self.depth, self.alpha, self.beta)
+        search_result = self._alpha_beta(self.depth, self.alpha, self.beta)
 
+        self.board = None
+        return search_result
 
-# pylint: disable=too-many-arguments
-def alpha_beta_search(
-    board: chess.Board,
-    evaluator: Evaluator,
-    depth: int,
-    alpha: float,
-    beta: float,
-) -> float:
-    """Alpha-Beta algorithm for search-based evaluation of a chess position
+    def _alpha_beta(self, depth: int, alpha: float, beta: float) -> float:
+        anchor = self._check_recursion_anchors(depth)
+        if anchor is not None:
+            return anchor
 
-    Parameters
-    ----------
-    board
-        State of the chess board to be evaluated
-    evaluator
-        Evaluation function used at leaf nodes
-    depth
-        The depth to which the tree of possible moves is searched. A value of zero causes this function to just apply
-        the `evaluator` to the current position and return the result.
-    alpha
-        Parameter for tree pruning. Use large negative value to initialize the algorithm.
-    beta
-        Parameter for tree pruning. Use large positive value to initialize the algorithm.
+        return self._recurse(depth, alpha, beta)
 
-    Returns
-    -------
-    float
-        Evaluation score of the current position in centi pawns.
-    """
+    def _check_recursion_anchors(self, depth: int) -> float | None:
+        # if one of the conditions to break the Alpha-Beta recursion is met, return the final value
 
-    if depth <= 0:
-        return evaluator.eval(board)
+        if depth <= 0:
+            return self.evaluator.eval(self.board)
 
-    if board.is_checkmate():
-        return -10_000 if board.turn == chess.WHITE else 10_000
+        if self.board.is_checkmate():
+            return -10_000 if self.board.turn == chess.WHITE else 10_000
 
-    best_value = None
-    if board.turn == chess.WHITE:
-        best_value = -99_999
+        if self.board.is_stalemate() or self.board.is_insufficient_material():
+            return 0
 
-        for move in board.legal_moves:
-            board.push(move)
-            best_value = max(
-                best_value,
-                alpha_beta_search(board, evaluator, depth - 1, alpha, beta),
-            )
-            board.pop()
+    def _recurse(self, depth: int, alpha: float, beta: float):
+        maximize = self.board.turn == chess.WHITE
+        best_value = float("-inf") if maximize else float("inf")
+        selector = max if maximize else min
 
-            alpha = max(alpha, best_value)
-            if alpha >= beta:
-                break
-    else:
-        best_value = 99_999
+        for move in self.board.legal_moves:
+            self.board.push(move)
+            best_value = selector(best_value, self._alpha_beta(depth - 1, alpha, beta))
+            self.board.pop()
 
-        for move in board.legal_moves:
-            board.push(move)
-            best_value = min(
-                best_value,
-                alpha_beta_search(board, evaluator, depth - 1, alpha, beta),
-            )
-            board.pop()
+            if maximize:
+                alpha = max(alpha, best_value)
+                if alpha >= beta:
+                    break
+            else:
+                beta = min(beta, best_value)
+                if beta <= alpha:
+                    break
 
-            beta = min(beta, best_value)
-            if beta <= alpha:
-                break
-
-    return best_value
+        return best_value
