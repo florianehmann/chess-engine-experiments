@@ -71,7 +71,59 @@ class MinimaxSearcher(Searcher):
         self.depth = depth
 
     def search(self, board: chess.Board) -> float:
-        return minimax(board, self.evaluator, self.depth, board.turn == chess.WHITE)
+        return self._minimax(board, self.depth, board.turn == chess.WHITE)
+
+    def _minimax(self, board: chess.Board, depth: int, maximize: bool) -> float:
+        """Minimax algorithm for search-based evaluation of a chess position
+
+        Parameters
+        ----------
+        board
+            State of the chess board to be evaluated
+        depth
+            The depth to which the tree of possible moves is searched. A value of zero causes this function to just apply
+            the `evaluator` to the current position and return the result.
+        maximize
+            Signals whether the function should choose branches that maximize or minimize the evaluation score. By
+            convention positive values are advantageous for white and negative values are advantageous for black. If white
+            is to move, set this to `True`. (TODO read that from the `board`)
+
+        Returns
+        -------
+        float
+            Evaluation score of the current position in centi pawns.
+        """
+
+        if depth <= 0:
+            return self.evaluator.eval(board)
+
+        if board.is_checkmate():
+            return -10_000 if board.turn == chess.WHITE else 10_000
+
+        if board.is_stalemate() or board.is_insufficient_material():
+            return 0
+
+        best_value = None
+        if maximize:
+            best_value = -99_999
+
+            for move in board.legal_moves:
+                board.push(move)
+                best_value = max(
+                    best_value, self._minimax(board, depth - 1, not maximize)
+                )
+                board.pop()
+        else:
+            best_value = 99_999
+
+            for move in board.legal_moves:
+                board.push(move)
+                best_value = min(
+                    best_value, self._minimax(board, depth - 1, not maximize)
+                )
+                board.pop()
+
+        return best_value
 
 
 # pylint: disable=too-few-public-methods
@@ -111,63 +163,6 @@ class AlphaBetaSearcher(Searcher):
             )
 
         return result
-
-
-def minimax(
-    board: chess.Board, evaluator: Evaluator, depth: int, maximize: bool
-) -> float:
-    """Minimax algorithm for search-based evaluation of a chess position
-
-    Parameters
-    ----------
-    board
-        State of the chess board to be evaluated
-    evaluator
-        Evaluation function used at leaf nodes
-    depth
-        The depth to which the tree of possible moves is searched. A value of zero causes this function to just apply
-        the `evaluator` to the current position and return the result.
-    maximize
-        Signals whether the function should choose branches that maximize or minimize the evaluation score. By
-        convention positive values are advantageous for white and negative values are advantageous for black. If white
-        is to move, set this to `True`. (TODO read that from the `board`)
-
-    Returns
-    -------
-    float
-        Evaluation score of the current position in centi pawns.
-    """
-
-    if depth <= 0:
-        return evaluator.eval(board)
-
-    if board.is_checkmate():
-        return -10_000 if board.turn == chess.WHITE else 10_000
-
-    if board.is_stalemate() or board.is_insufficient_material():
-        return 0
-
-    best_value = None
-    if maximize:
-        best_value = -99_999
-
-        for move in board.legal_moves:
-            board.push(move)
-            best_value = max(
-                best_value, minimax(board, evaluator, depth - 1, not maximize)
-            )
-            board.pop()
-    else:
-        best_value = 99_999
-
-        for move in board.legal_moves:
-            board.push(move)
-            best_value = min(
-                best_value, minimax(board, evaluator, depth - 1, not maximize)
-            )
-            board.pop()
-
-    return best_value
 
 
 # pylint: disable=too-many-arguments,too-many-branches
