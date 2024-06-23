@@ -14,12 +14,6 @@ def test_instantiate():
     searchers.AlphaBetaSearcher(evaluator, depth=0)
 
 
-def test_instantiate_cached():
-    """Test if AlphaBetaSearcher can be instantiated with cache"""
-    evaluator = evaluators.SimpleEvaluator()
-    searchers.AlphaBetaSearcher(evaluator, depth=0, cachesize=10)
-
-
 @pytest.mark.parametrize("fen_key", fens.keys())
 def test_zero_depth_search(fen_key):
     """Test if the searcher returns the evaluator's scores at zero depth"""
