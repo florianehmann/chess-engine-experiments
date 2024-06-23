@@ -65,7 +65,7 @@ class MinimaxSearcher(Searcher):
     """Searcher based on the Minimax algorithm"""
 
     def __init__(self, evaluator: Evaluator, depth: int):
-        assert depth > 0
+        assert depth >= 0
 
         self.evaluator = evaluator
         self.depth = depth
