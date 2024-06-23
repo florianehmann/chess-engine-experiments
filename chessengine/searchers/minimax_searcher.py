@@ -13,17 +13,21 @@ class MinimaxSearcher(Searcher):
         self.evaluator = evaluator
         self.depth = depth
 
+        self.board = None
+
     def search(self, board: chess.Board) -> float:
-        return self._minimax(board, self.depth)
+        self.board = board
+        search_result = self._minimax(self.depth)
+        self.board = None
 
-    def _minimax(self, board: chess.Board, depth: int) -> float:
-        # Apply Minimax to `board` with the given search `depth`
+        return search_result
 
-        anchor = self._check_recursion_anchors(board, depth)
+    def _minimax(self, depth: int) -> float:
+        anchor = self._check_recursion_anchors(self.board, depth)
         if anchor is not None:
             return anchor
 
-        return self._recurse_minimax(board, depth)
+        return self._recurse_minimax(self.board, depth)
 
     def _check_recursion_anchors(self, board: chess.Board, depth: int) -> float | None:
         # if one of the conditions to break the Minimax recursion is met, return the final value
@@ -38,14 +42,12 @@ class MinimaxSearcher(Searcher):
             return 0
 
     def _recurse_minimax(self, board: chess.Board, depth: int):
-        # Continue the search at the next lower level
-
         best_value = float("-inf") if board.turn == chess.WHITE else float("inf")
         selector = max if board.turn == chess.WHITE else min
 
         for move in board.legal_moves:
             board.push(move)
-            best_value = selector(best_value, self._minimax(board, depth - 1))
+            best_value = selector(best_value, self._minimax(depth - 1))
             board.pop()
 
         return best_value
