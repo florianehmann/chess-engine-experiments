@@ -1,5 +1,7 @@
 from abc import ABC, abstractmethod
 from enum import auto, Enum
+from functools import total_ordering
+from typing import Self
 
 import chess
 
@@ -10,9 +12,12 @@ class SearchResultType(Enum):
     """The search returns a regular evaluation score."""
     MATE = auto()
     """The search determines that there is a guaranteed mate in a number of moves for the current color."""
+    DRAW = auto()
+    """The search ends in a draw."""
 
 
 # pylint: disable=attribute-defined-outside-init
+@total_ordering
 class SearchResult:
     """Result of a search into the move tree.
 
@@ -21,28 +26,78 @@ class SearchResult:
     """
 
     def __init__(self):
+        # put those here so IDE/linter recognize them
+        self.moves: list[chess.Move] = []
+        self.score: float | None = None
+        self.type: SearchResultType | None = None
+        self.winner: bool | None = None
+
         raise TypeError("SearchResult cannot be instantiated directly, use factory methods")
 
     def __new__(cls):
         return super().__new__(cls)
 
+    def __eq__(self, other: Self) -> bool:
+        assert isinstance(other, self.__class__)
+
+        # shorter mates are better
+        if self.type == SearchResultType.MATE and other.type == SearchResultType.MATE:
+            if len(self.moves) != len(other.moves):
+                return False
+
+        return self._get_score() == other._get_score()
+
+    def __lt__(self, other: Self) -> bool:
+        assert isinstance(other, self.__class__)
+
+        # shorter mates are better
+        if self.type == SearchResultType.MATE and other.type == SearchResultType.MATE:
+            if self.winner == other.winner:
+                if self.winner == chess.WHITE:
+                    return len(self.moves) > len(other.moves)
+                else:
+                    return len(self.moves) < len(other.moves)
+
+        return self._get_score() < other._get_score()
+
+    def _get_score(self) -> float:
+        # Get a score value for a result. Positive or negative infinity for mate and zero for draw.
+        if self.type == SearchResultType.SCORE:
+            return self.score
+        elif self.type == SearchResultType.MATE:
+            return float("inf") if self.winner == chess.WHITE else float("-inf")
+        else:
+            return 0.0
+
     @classmethod
-    def from_score(cls, score: float):
+    def from_score(cls, score: float, moves: list[chess.Move]) -> Self:
         """Create a search result that represents a regular evaluation score."""
 
         instance = cls.__new__(cls)
         instance.type = SearchResultType.SCORE
+        instance.moves = moves
         instance.score = score
 
         return instance
 
     @classmethod
-    def from_mate(cls, move_sequence: list[chess.Move]):
+    def from_mate(cls, winner: bool, moves: list[chess.Move]) -> Self:
         """Create a search result that represents forced mate in a certain number of moves."""
 
         instance = cls.__new__(cls)
         instance.type = SearchResultType.MATE
-        instance.move_sequence = move_sequence
+        instance.moves = moves
+        instance.winner = winner
+
+        return instance
+
+    @classmethod
+    def from_draw(cls, moves: list[chess.Move]) -> Self:
+        """Create a search result that represents forced mate in a certain number of moves."""
+
+        instance = cls.__new__(cls)
+        instance.type = SearchResultType.DRAW
+        instance.moves = moves
 
         return instance
 

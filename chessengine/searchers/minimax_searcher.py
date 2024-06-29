@@ -1,7 +1,7 @@
 import chess
 
 from ..evaluators import Evaluator
-from .abstract import Searcher
+from .abstract import Searcher, SearchResult
 
 
 class MinimaxSearcher(Searcher):
@@ -13,41 +13,52 @@ class MinimaxSearcher(Searcher):
         self.evaluator = evaluator
         self.depth = depth
 
-        self.board = None
+        self.board: chess.Board | None = None
+        self.move_count_at_search_begin: int | None = None
 
-    def search(self, board: chess.Board) -> float:
+    def get_search_move_stack(self) -> list[chess.Move]:
+        """Get the list of moves the leads to the current node in the search"""
+        return self.board.move_stack[self.move_count_at_search_begin:]
+
+    def init_search(self, board: chess.Board) -> None:
+        """Initialize internal variables of the `Searcher` for search begin"""
         self.board = board
+        self.move_count_at_search_begin = len(board.move_stack)
+
+    def search(self, board: chess.Board) -> SearchResult:
+        self.init_search(board)
         search_result = self._minimax(self.depth)
-        self.board = None
 
         return search_result
 
-    def _minimax(self, depth: int) -> float:
+    def _minimax(self, depth: int) -> SearchResult:
         anchor = self._check_recursion_anchors(self.board, depth)
         if anchor is not None:
             return anchor
 
         return self._recurse_minimax(self.board, depth)
 
-    def _check_recursion_anchors(self, board: chess.Board, depth: int) -> float | None:
+    def _check_recursion_anchors(self, board: chess.Board, depth: int) -> SearchResult | None:
         # if one of the conditions to break the Minimax recursion is met, return the final value
 
         if depth <= 0:
-            return self.evaluator.eval(board)
+            return SearchResult.from_score(self.evaluator.eval(board), self.get_search_move_stack())
 
         if board.is_checkmate():
-            return -10_000 if board.turn == chess.WHITE else 10_000
+            return SearchResult.from_mate(chess.BLACK if board.turn == chess.WHITE else chess.WHITE,
+                                          self.get_search_move_stack())
 
         if board.is_stalemate() or board.is_insufficient_material():
-            return 0
+            return SearchResult.from_draw(self.get_search_move_stack())
 
     def _recurse_minimax(self, board: chess.Board, depth: int):
-        best_value = float("-inf") if board.turn == chess.WHITE else float("inf")
+        best_result = SearchResult.from_mate(chess.BLACK if board.turn == chess.WHITE else chess.WHITE,
+                                             self.get_search_move_stack())
         selector = max if board.turn == chess.WHITE else min
 
         for move in board.legal_moves:
             board.push(move)
-            best_value = selector(best_value, self._minimax(depth - 1))
+            best_result = selector(best_result, self._minimax(depth - 1))
             board.pop()
 
-        return best_value
+        return best_result
