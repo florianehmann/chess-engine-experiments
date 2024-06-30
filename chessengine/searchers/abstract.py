@@ -45,7 +45,7 @@ class SearchResult:
             if len(self.moves) != len(other.moves):
                 return False
 
-        return self._get_score() == other._get_score()
+        return self.get_effective_score() == other.get_effective_score()
 
     def __lt__(self, other: Self) -> bool:
         assert isinstance(other, self.__class__)
@@ -58,10 +58,10 @@ class SearchResult:
                 else:
                     return len(self.moves) < len(other.moves)
 
-        return self._get_score() < other._get_score()
+        return self.get_effective_score() < other.get_effective_score()
 
-    def _get_score(self) -> float:
-        # Get a score value for a result. Positive or negative infinity for mate and zero for draw.
+    def get_effective_score(self) -> float:
+        """Get a score value for a result. Positive or negative infinity for mate and zero for draw."""
         if self.type == SearchResultType.SCORE:
             return self.score
         elif self.type == SearchResultType.MATE:
