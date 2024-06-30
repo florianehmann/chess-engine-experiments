@@ -32,33 +32,33 @@ class MinimaxSearcher(Searcher):
         return search_result
 
     def _minimax(self, depth: int) -> SearchResult:
-        anchor = self._check_recursion_anchors(self.board, depth)
+        anchor = self._check_recursion_anchors(depth)
         if anchor is not None:
             return anchor
 
-        return self._recurse_minimax(self.board, depth)
+        return self._recurse_minimax(depth)
 
-    def _check_recursion_anchors(self, board: chess.Board, depth: int) -> SearchResult | None:
+    def _check_recursion_anchors(self, depth: int) -> SearchResult | None:
         # if one of the conditions to break the Minimax recursion is met, return the final value
 
         if depth <= 0:
-            return SearchResult.from_score(self.evaluator.eval(board), self.get_search_move_stack())
+            return SearchResult.from_score(self.evaluator.eval(self.board), self.get_search_move_stack())
 
-        if board.is_checkmate():
-            return SearchResult.from_mate(chess.BLACK if board.turn == chess.WHITE else chess.WHITE,
+        if self.board.is_checkmate():
+            return SearchResult.from_mate(chess.BLACK if self.board.turn == chess.WHITE else chess.WHITE,
                                           self.get_search_move_stack())
 
-        if board.is_stalemate() or board.is_insufficient_material():
+        if self.board.is_stalemate() or self.board.is_insufficient_material():
             return SearchResult.from_draw(self.get_search_move_stack())
 
-    def _recurse_minimax(self, board: chess.Board, depth: int):
-        best_result = SearchResult.from_mate(chess.BLACK if board.turn == chess.WHITE else chess.WHITE,
+    def _recurse_minimax(self, depth: int):
+        best_result = SearchResult.from_mate(chess.BLACK if self.board.turn == chess.WHITE else chess.WHITE,
                                              self.get_search_move_stack())
-        selector = max if board.turn == chess.WHITE else min
+        selector = max if self.board.turn == chess.WHITE else min
 
-        for move in board.legal_moves:
-            board.push(move)
+        for move in self.board.legal_moves:
+            self.board.push(move)
             best_result = selector(best_result, self._minimax(depth - 1))
-            board.pop()
+            self.board.pop()
 
         return best_result
