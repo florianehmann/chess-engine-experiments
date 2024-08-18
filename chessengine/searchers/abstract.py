@@ -36,6 +36,12 @@ class SearchResult:
 
     def __new__(cls):
         return super().__new__(cls)
+    
+    def __repr__(self):
+        type_part = self.type
+        if self.type == SearchResultType.SCORE:
+            type_part = f"score={self.score}"
+        return f"<SearchResult {type_part} move={self.moves}>"
 
     def __eq__(self, other: Self) -> bool:
         assert isinstance(other, self.__class__)
@@ -107,5 +113,5 @@ class Searcher(ABC):
     """Search algorithm that provides an evaluation of a chess position based on searching in the tree of
     possible moves"""
     @abstractmethod
-    def search(self, board: chess.Board) -> float:
+    def search(self, board: chess.Board) -> SearchResult:
         """Performs the tree search and returns an evaluation in centi pawns"""
